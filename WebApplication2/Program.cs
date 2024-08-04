@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using PolygonClient.Models;
+using Polygon.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
