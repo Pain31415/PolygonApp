@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Polygon.Models;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -12,6 +14,7 @@ namespace PolygonClient
     public partial class MainWindow : Window
     {
         private const string ApiUrl = "https://localhost:7098/Shapes/AddShape";
+        private List<Shape> _shapes;
 
         public MainWindow()
         {
@@ -38,13 +41,13 @@ namespace PolygonClient
             try
             {
                 var json = File.ReadAllText(filePath);
-                var shapes = JsonConvert.DeserializeObject<List<Shape>>(json);
+                _shapes = JsonConvert.DeserializeObject<List<Shape>>(json);
 
-                if (shapes != null)
+                if (_shapes != null)
                 {
-                    double averageArea = shapes.Average(shape => shape.Area);
+                    double averageArea = _shapes.Average(shape => shape.Area);
 
-                    foreach (var shape in shapes)
+                    foreach (var shape in _shapes)
                     {
                         shape.Area = CalculateArea(shape.Points);
                         shape.Perimeter = CalculatePerimeter(shape.Points);
@@ -52,10 +55,7 @@ namespace PolygonClient
                         shape.Color = shape.Area > averageArea ? 0xFF0000FF : 0xFF000000; // Синій для вище середнього, чорний для інших
                     }
 
-                    var serializedShapes = JsonConvert.SerializeObject(shapes[0]);
-                    SendDataToServer(serializedShapes);
-
-                    PolygonsListBox.ItemsSource = shapes;
+                    PolygonsListBox.ItemsSource = _shapes;
                 }
                 else
                 {
@@ -70,7 +70,6 @@ namespace PolygonClient
 
         private double CalculateArea(List<Point> points)
         {
-            // Реалізуйте формулу для розрахунку площі полігону
             if (points.Count < 3)
                 return 0.0;
 
@@ -88,7 +87,6 @@ namespace PolygonClient
 
         private double CalculatePerimeter(List<Point> points)
         {
-            // Реалізуйте формулу для розрахунку периметру полігону
             double perimeter = 0.0;
             int n = points.Count;
             for (int i = 0; i < n; i++)
@@ -103,7 +101,6 @@ namespace PolygonClient
 
         private double CalculateLongestSide(List<Point> points)
         {
-            // Реалізуйте формулу для розрахунку найдовшої сторони полігону
             double longestSide = 0.0;
             int n = points.Count;
             for (int i = 0; i < n; i++)
@@ -141,6 +138,19 @@ namespace PolygonClient
             catch (Exception ex)
             {
                 MessageBox.Show($"Помилка при відправці даних на сервер: {ex.Message}");
+            }
+        }
+
+        private void SendDataButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_shapes != null && _shapes.Count > 0)
+            {
+                var serializedShapes = JsonConvert.SerializeObject(_shapes[0]); // Ви можете вибрати інші дані для відправки
+                SendDataToServer(serializedShapes);
+            }
+            else
+            {
+                MessageBox.Show("Не обрано жодного файлу або дані не оброблені.");
             }
         }
     }
