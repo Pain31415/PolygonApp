@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PolygonClient.Models;
+using Polygon.Models;
 
-namespace PolygonClient.Controllers
+namespace Polygon.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -16,11 +16,10 @@ namespace PolygonClient.Controllers
             _logger = logger;
             _context = context;
 
-            // Initialize sample data if the database is empty
-            if (!_context.Shapes.Any())
+            if (!_context.Polygons.Any())
             {
-                _context.Shapes.AddRange(
-                    new Shape
+                _context.Polygons.AddRange(
+                    new Models.Shape
                     {
                         Color = 0xFF0000,
                         Points = new List<Point>
@@ -34,7 +33,7 @@ namespace PolygonClient.Controllers
                         LongestSide = 1.4142135623730951,
                         Perimeter = 4
                     },
-                    new Shape
+                    new Models.Shape
                     {
                         Color = 0x00FF00,
                         Points = new List<Point>
@@ -48,7 +47,7 @@ namespace PolygonClient.Controllers
                         LongestSide = 2,
                         Perimeter = 8
                     },
-                    new Shape
+                    new Models.Shape
                     {
                         Color = 0x0000FF,
                         Points = new List<Point>
@@ -62,7 +61,7 @@ namespace PolygonClient.Controllers
                         LongestSide = 3,
                         Perimeter = 12
                     },
-                    new Shape
+                    new Models.Shape
                     {
                         Color = 0xFF00FF,
                         Points = new List<Point>
@@ -82,15 +81,15 @@ namespace PolygonClient.Controllers
         }
 
         [HttpGet("AllShapes")]
-        public async Task<ActionResult<IEnumerable<Shape>>> GetAllShapes()
+        public async Task<ActionResult<IEnumerable<Models.Shape>>> GetAllShapes()
         {
-            return await _context.Shapes.Include(s => s.Points).ToListAsync();
+            return await _context.Polygons.Include(s => s.Points).ToListAsync();
         }
 
         [HttpGet("LargestArea")]
-        public async Task<ActionResult<Shape>> GetLargestArea()
+        public async Task<ActionResult<Models.Shape>> GetLargestArea()
         {
-            var shape = await _context.Shapes.Include(s => s.Points).OrderByDescending(s => s.Area).FirstOrDefaultAsync();
+            var shape = await _context.Polygons.Include(s => s.Points).OrderByDescending(s => s.Area).FirstOrDefaultAsync();
             if (shape == null)
             {
                 return NotFound();
@@ -99,9 +98,9 @@ namespace PolygonClient.Controllers
         }
 
         [HttpGet("LargestPerimeter")]
-        public async Task<ActionResult<Shape>> GetLargestPerimeter()
+        public async Task<ActionResult<Models.Shape>> GetLargestPerimeter()
         {
-            var shape = await _context.Shapes.Include(s => s.Points).OrderByDescending(s => s.Perimeter).FirstOrDefaultAsync();
+            var shape = await _context.Polygons.Include(s => s.Points).OrderByDescending(s => s.Perimeter).FirstOrDefaultAsync();
             if (shape == null)
             {
                 return NotFound();
@@ -110,9 +109,9 @@ namespace PolygonClient.Controllers
         }
 
         [HttpGet("LongestSide")]
-        public async Task<ActionResult<Shape>> GetLongestSide()
+        public async Task<ActionResult<Models.Shape>> GetLongestSide()
         {
-            var shape = await _context.Shapes.Include(s => s.Points).OrderByDescending(s => s.LongestSide).FirstOrDefaultAsync();
+            var shape = await _context.Polygons.Include(s => s.Points).OrderByDescending(s => s.LongestSide).FirstOrDefaultAsync();
             if (shape == null)
             {
                 return NotFound();
@@ -121,9 +120,9 @@ namespace PolygonClient.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Shape>> GetShapeById(int id)
+        public async Task<ActionResult<Models.Shape>> GetShapeById(int id)
         {
-            var shape = await _context.Shapes.Include(s => s.Points).FirstOrDefaultAsync(s => s.Id == id);
+            var shape = await _context.Polygons.Include(s => s.Points).FirstOrDefaultAsync(s => s.Id == id);
             if (shape == null)
             {
                 return NotFound();
@@ -132,17 +131,17 @@ namespace PolygonClient.Controllers
         }
 
         [HttpPost("AddShape")]
-        public async Task<ActionResult<Shape>> AddShape([FromBody] Shape newShape)
+        public async Task<ActionResult<Models.Shape>> AddShape([FromBody] List<Shape> shapes)
         {
-            if (newShape == null)
+            if (shapes == null)
             {
                 return BadRequest();
             }
-
-            _context.Shapes.Add(newShape);
+            
+            _context.Polygons.AddRange(shapes);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetShapeById), new { id = newShape.Id }, newShape);
+            return Ok("Shapes received successfully.");
         }
     }
 }

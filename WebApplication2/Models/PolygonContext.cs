@@ -1,25 +1,36 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace PolygonClient.Models
+namespace Polygon.Models
 {
     public class PolygonContext : DbContext
     {
         public PolygonContext(DbContextOptions<PolygonContext> options) : base(options) { }
-
-        public DbSet<Shape> Shapes { get; set; }
+        public DbSet<Shape> Polygons { get; set; }
         public DbSet<Point> Points { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Shape>()
+                .HasKey(s => s.Id);
+
+            modelBuilder.Entity<Shape>()
+                .Property(s => s.Id)
+                .ValueGeneratedOnAdd();
 
             modelBuilder.Entity<Point>()
                 .HasKey(p => p.Id);
 
-            modelBuilder.Entity<Shape>()
-                .HasMany(p => p.Points)
-                .WithOne()
-                .HasForeignKey(p => p.ShapeId);
+            modelBuilder.Entity<Point>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Point>()
+                .HasOne<Shape>()
+                .WithMany(s => s.Points)
+                .HasForeignKey(p => p.PolygonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            base.OnModelCreating(modelBuilder);
         }
     }
 }
