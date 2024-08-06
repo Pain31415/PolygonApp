@@ -22,6 +22,6 @@ namespace Polygon.Models
         public int Id { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
-        public int PolygonId { get; set; } // Foreign key for Shape
+        public int PolygonId { get; set; }
     }
 }

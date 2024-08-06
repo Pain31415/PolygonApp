@@ -16,7 +16,6 @@ namespace Polygon.Controllers
             _logger = logger;
             _context = context;
 
-            // Initialize sample data if the database is empty
             if (!_context.Polygons.Any())
             {
                 _context.Polygons.AddRange(
@@ -132,17 +131,17 @@ namespace Polygon.Controllers
         }
 
         [HttpPost("AddShape")]
-        public async Task<ActionResult<Models.Shape>> AddShape([FromBody] Models.Shape shape)
+        public async Task<ActionResult<Models.Shape>> AddShape([FromBody] List<Shape> shapes)
         {
-            if (shape == null)
+            if (shapes == null)
             {
                 return BadRequest();
             }
             
-            _context.Polygons.Add(shape);
+            _context.Polygons.AddRange(shapes);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetShapeById), new { id = shape.Id }, shape);
+            return Ok("Shapes received successfully.");
         }
     }
 }

@@ -10,7 +10,6 @@ namespace Polygon.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Визначення ключа для таблиці Shapes
             modelBuilder.Entity<Shape>()
                 .HasKey(s => s.Id);
 
@@ -25,12 +24,11 @@ namespace Polygon.Models
                 .Property(p => p.Id)
                 .ValueGeneratedOnAdd();
 
-            // Встановлення зв'язку між таблицями Shapes і Points
             modelBuilder.Entity<Point>()
                 .HasOne<Shape>()
                 .WithMany(s => s.Points)
                 .HasForeignKey(p => p.PolygonId)
-                .OnDelete(DeleteBehavior.Cascade); // Якщо потрібна каскадна видалення точок при видаленні полігону
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
         }
