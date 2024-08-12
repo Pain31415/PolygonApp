@@ -45,21 +45,17 @@ namespace PolygonClient
 
                 if (_shapes != null)
                 {
-                    double averageArea = _shapes.Average(shape => shape.Area);
-
                     foreach (var shape in _shapes)
                     {
-                        // Calculate areas, perimeters, and longest sides for each shape
                         shape.Area = CalculateArea(shape.Points);
                         shape.Perimeter = CalculatePerimeter(shape.Points);
                         shape.LongestSide = CalculateLongestSide(shape.Points);
 
-                        // Example logic for color
                         shape.Color = (uint)ColorToArgb(
-                            255, // Alpha (fully opaque)
-                            (byte)(shape.Area > averageArea ? 0 : 255), // Red
-                            (byte)(shape.Area > averageArea ? 255 : 0), // Green
-                            0 // Blue
+                            255,
+                            GetColorForShape(shape).Color.R,
+                            GetColorForShape(shape).Color.G,
+                            GetColorForShape(shape).Color.B
                         );
                     }
 
@@ -213,7 +209,6 @@ namespace PolygonClient
             }
         }
 
-
         private Canvas CreateCoordinateGrid()
         {
             var gridCanvas = new Canvas
@@ -279,6 +274,49 @@ namespace PolygonClient
         private uint ColorToArgb(byte alpha, byte red, byte green, byte blue)
         {
             return (uint)((alpha << 24) | (red << 16) | (green << 8) | blue);
+        }
+
+        private SolidColorBrush GetColorForShape(Polygon.Models.Shape shape)
+        {
+            if (shape.Points.Count == 3)
+            {
+                return Brushes.Red;
+            }
+            else if (shape.Points.Count == 4)
+            {
+                if (AreAllSidesEqual(shape.Points))
+                {
+                    return Brushes.Green;
+                }
+                return Brushes.Blue;
+            }
+            return Brushes.Gray;
+        }
+
+        private bool AreAllSidesEqual(List<Polygon.Models.Point> points)
+        {
+            if (points.Count < 4) return false;
+
+            double firstSideLength = GetSideLength(points[0], points[1]);
+
+            for (int i = 1; i < points.Count; i++)
+            {
+                int nextIndex = (i + 1) % points.Count;
+                double currentSideLength = GetSideLength(points[i], points[nextIndex]);
+
+                if (Math.Abs(currentSideLength - firstSideLength) > 0.01)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private double GetSideLength(Polygon.Models.Point p1, Polygon.Models.Point p2)
+        {
+            double dx = p2.X - p1.X;
+            double dy = p2.Y - p1.Y;
+            return Math.Sqrt(dx * dx + dy * dy);
         }
     }
 }
