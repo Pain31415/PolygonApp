@@ -49,10 +49,18 @@ namespace PolygonClient
 
                     foreach (var shape in _shapes)
                     {
+                        // Calculate areas, perimeters, and longest sides for each shape
                         shape.Area = CalculateArea(shape.Points);
                         shape.Perimeter = CalculatePerimeter(shape.Points);
                         shape.LongestSide = CalculateLongestSide(shape.Points);
-                        shape.Color = shape.Area > averageArea ? 0xFF0000FF : 0xFF000000;
+
+                        // Example logic for color
+                        shape.Color = (uint)ColorToArgb(
+                            255, // Alpha (fully opaque)
+                            (byte)(shape.Area > averageArea ? 0 : 255), // Red
+                            (byte)(shape.Area > averageArea ? 255 : 0), // Green
+                            0 // Blue
+                        );
                     }
 
                     PolygonsListBox.ItemsSource = _shapes;
@@ -161,6 +169,11 @@ namespace PolygonClient
                 ShapeCanvas.Children.Clear();
                 ShapeCanvas.Children.Add(CreateCoordinateGrid());
 
+                double minX = _shapes.SelectMany(shape => shape.Points).Min(p => p.X);
+                double maxX = _shapes.SelectMany(shape => shape.Points).Max(p => p.X);
+                double minY = _shapes.SelectMany(shape => shape.Points).Min(p => p.Y);
+                double maxY = _shapes.SelectMany(shape => shape.Points).Max(p => p.Y);
+
                 double canvasCenterX = ShapeCanvas.ActualWidth / 2;
                 double canvasCenterY = ShapeCanvas.ActualHeight / 2;
 
@@ -168,22 +181,22 @@ namespace PolygonClient
                 {
                     var points = shape.Points.Select(p => new System.Windows.Point(p.X * _scaleFactor, p.Y * _scaleFactor)).ToList();
 
-                    double minX = points.Min(p => p.X);
-                    double maxX = points.Max(p => p.X);
-                    double minY = points.Min(p => p.Y);
-                    double maxY = points.Max(p => p.Y);
-
                     double shapeWidth = maxX - minX;
                     double shapeHeight = maxY - minY;
 
-                    double offsetX = canvasCenterX - (minX + shapeWidth / 2);
-                    double offsetY = canvasCenterY - (minY + shapeHeight / 2);
+                    double offsetX = canvasCenterX - (minX + shapeWidth / 2) * _scaleFactor;
+                    double offsetY = canvasCenterY - (minY + shapeHeight / 2) * _scaleFactor;
 
                     var polygon = new System.Windows.Shapes.Polygon
                     {
                         Points = new PointCollection(points.Select(p => new System.Windows.Point(p.X + offsetX, p.Y + offsetY))),
                         Stroke = Brushes.Black,
-                        Fill = new SolidColorBrush(Color.FromArgb((byte)(shape.Color >> 24), (byte)(shape.Color >> 16), (byte)(shape.Color >> 8), (byte)shape.Color)),
+                        Fill = new SolidColorBrush(Color.FromArgb(
+                            (byte)(shape.Color >> 24),
+                            (byte)(shape.Color >> 16),
+                            (byte)(shape.Color >> 8),
+                            (byte)shape.Color
+                        )),
                         StrokeThickness = 2
                     };
 
@@ -256,6 +269,11 @@ namespace PolygonClient
             }
 
             return gridCanvas;
+        }
+
+        private uint ColorToArgb(byte alpha, byte red, byte green, byte blue)
+        {
+            return (uint)((alpha << 24) | (red << 16) | (green << 8) | blue);
         }
     }
 }

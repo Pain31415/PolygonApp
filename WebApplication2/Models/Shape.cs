@@ -14,14 +14,4 @@ namespace Polygon.Models
         public double LongestSide { get; set; }
         public double Perimeter { get; set; }
     }
-
-    public class Point
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-        public double X { get; set; }
-        public double Y { get; set; }
-        public int PolygonId { get; set; }
-    }
 }
