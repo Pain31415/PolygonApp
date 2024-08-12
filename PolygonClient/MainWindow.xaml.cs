@@ -174,28 +174,32 @@ namespace PolygonClient
                 double minY = _shapes.SelectMany(shape => shape.Points).Min(p => p.Y);
                 double maxY = _shapes.SelectMany(shape => shape.Points).Max(p => p.Y);
 
-                double canvasCenterX = ShapeCanvas.ActualWidth / 2;
-                double canvasCenterY = ShapeCanvas.ActualHeight / 2;
+                double shapeWidth = maxX - minX;
+                double shapeHeight = maxY - minY;
+
+                double canvasWidth = ShapeCanvas.ActualWidth;
+                double canvasHeight = ShapeCanvas.ActualHeight;
+
+                double scaleX = canvasWidth / shapeWidth;
+                double scaleY = canvasHeight / shapeHeight;
+                double scale = Math.Min(scaleX, scaleY);
+
+                double offsetX = (canvasWidth - shapeWidth * scale) / 2;
+                double offsetY = (canvasHeight - shapeHeight * scale) / 2;
 
                 foreach (var shape in _shapes)
                 {
-                    var points = shape.Points.Select(p => new System.Windows.Point(p.X * _scaleFactor, p.Y * _scaleFactor)).ToList();
-
-                    double shapeWidth = maxX - minX;
-                    double shapeHeight = maxY - minY;
-
-                    double offsetX = canvasCenterX - (minX + shapeWidth / 2) * _scaleFactor;
-                    double offsetY = canvasCenterY - (minY + shapeHeight / 2) * _scaleFactor;
+                    var points = shape.Points.Select(p => new System.Windows.Point((p.X - minX) * scale + offsetX, (p.Y - minY) * scale + offsetY)).ToList();
 
                     var polygon = new System.Windows.Shapes.Polygon
                     {
-                        Points = new PointCollection(points.Select(p => new System.Windows.Point(p.X + offsetX, p.Y + offsetY))),
+                        Points = new PointCollection(points),
                         Stroke = Brushes.Black,
                         Fill = new SolidColorBrush(Color.FromArgb(
                             (byte)(shape.Color >> 24),
-                            (byte)(shape.Color >> 16),
-                            (byte)(shape.Color >> 8),
-                            (byte)shape.Color
+                            (byte)((shape.Color >> 16) & 0xFF),
+                            (byte)((shape.Color >> 8) & 0xFF),
+                            (byte)(shape.Color & 0xFF)
                         )),
                         StrokeThickness = 2
                     };
@@ -208,6 +212,7 @@ namespace PolygonClient
                 MessageBox.Show("Фігури не завантажені.");
             }
         }
+
 
         private Canvas CreateCoordinateGrid()
         {
